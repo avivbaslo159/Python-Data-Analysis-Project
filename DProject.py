@@ -1,3 +1,7 @@
+# Python Data Analysis Project
+# Authors: Aviv Baslo
+# Project: Data cleaning, visualization, clustering, regression, and ML models
+# GitHub: https://github.com/avivbaslo159/Python-Data-Analysis-Project
 import os
 import numpy as np
 import pandas as pd
@@ -11,14 +15,16 @@ from sklearn.cluster import KMeans
 from sklearn.metrics import confusion_matrix, accuracy_score
 from sklearn.preprocessing import MinMaxScaler
 import statsmodels.api as sm
-sns.set_theme(style="dark")
-os.environ["LOKY_MAX_CPU_COUNT"] = "4"
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import train_test_split
 from sklearn import metrics, __all__
 from sklearn import tree
 
-#Q.3
+sns.set_theme(style="dark")
+os.environ["LOKY_MAX_CPU_COUNT"] = "4"
+
+# 1. Load and Explore Dataset
+
 dframe1 = pd.read_csv('input1_df.csv')
 
 print("The first lines on the database:")
@@ -30,7 +36,8 @@ print("Descriptive statistics Of the database: ")
 print(dframe1.describe())
 print()
 
-#Q.4
+# 2. Data Cleaning and Preprocessing
+
 duplicates = dframe1[dframe1.duplicated('Title')]
 print()
 print(duplicates)
@@ -38,46 +45,21 @@ dframe1 = dframe1.drop_duplicates()
 dframe1.reset_index(drop=True, inplace=True)
 dframe1.to_csv("Dup.csv",index=False)
 
-
 overall_mode1 = dframe1['Age'].mode().iloc[0]
-# print(overall_mode1)
 dframe1.loc[:, 'Age'] = dframe1['Age'].fillna(overall_mode1)
-# dframe1.to_csv('mode1.csv',index=False)
-
-
 overall_mean1 = dframe1["IMDb"].mean()
-# print(overall_mean1)
 dframe1["IMDb"] = dframe1["IMDb"].fillna(overall_mean1)
-# dframe1.to_csv('AVG1.csv',index=False)
-
-
 overall_mode2 = dframe1['date_added to rating'].mode().iloc[0]
-# print(overall_mode2)
 dframe1.loc[:, 'date_added to rating'] = dframe1['date_added to rating'].fillna(overall_mode2)
-# dframe1.to_csv('mode2.csv',index=False)
-
-
 overall_mode3 = dframe1['type'].mode().iloc[0]
-# print(overall_mode3)
 dframe1.loc[:, 'type'] = dframe1['type'].fillna(overall_mode3)
-# dframe1.to_csv('mode3.csv',index=False)
-
-
 overall_mode4 = dframe1['country'].mode().iloc[0]
-# print(overall_mode4)
 dframe1.loc[:, 'country'] = dframe1['country'].fillna(overall_mode4)
-# dframe1.to_csv('mode4.csv',index=False)
-
-
 overall_mode5 = dframe1['duration'].mode().iloc[0]
-# print(overall_mode5)
 dframe1.loc[:, 'duration'] = dframe1['duration'].fillna(overall_mode5)
-# dframe1.to_csv('mode5.csv',index=False)
 
-# print(dframe1.info())
+# 3. Pivot Tables and Visualization
 
-
-#Q.5
 print()
 pv1_df = pd.pivot_table(dframe1, index='country',columns='type', values='IMDb', aggfunc='mean')
 print("pv1_df")
@@ -93,10 +75,6 @@ pv3_df = pd.pivot_table(dframe1, index='release year',columns='type', values='Ro
 print("pv3_df")
 print(pv3_df)
 
-
-#Q.6
-#pv1
-#1
 pv1_df.plot(kind='bar', figsize=(10, 6))
 plt.title('Mean IMDb Ratings by Country and Type')
 plt.xlabel('Country')
@@ -106,7 +84,6 @@ plt.xticks(rotation=45, ha='right')
 plt.tight_layout()
 plt.show()
 
-#2
 plt.figure(figsize=(10, 6))
 for column in pv1_df.columns:
     plt.plot(pv1_df.index, pv1_df[column], marker='o', label=column)
@@ -119,15 +96,11 @@ plt.xticks(rotation=90)
 plt.tight_layout()
 plt.show()
 
-
-#pv2
-#1
 plt.figure(figsize=(10, 6))
 sns.heatmap(pv2_df, cmap='viridis')
 plt.title('Max Heatmap of Rotten Tomatoes by Type and Age')
 plt.show()
 
-#2
 melted_df = pv2_df.reset_index().melt(id_vars='type', var_name='Age', value_name='Rotten Tomatoes')
 melted_df.dropna(inplace=True)
 plt.figure(figsize=(10, 6))
@@ -137,15 +110,11 @@ plt.xlabel('Age')
 plt.ylabel('Rotten Tomatoes')
 plt.show()
 
-
-#pv3
-#1
 fig = px.area(pv3_df, x=pv3_df.index, y=['Movie', 'TV Show'],
 title='Rotten Tomatoes Count Over Release Years (Area Chart)',
 labels={'value': 'Rotten Tomatoes Count', 'release year': 'Release Year'})
 fig.show()
 
-#2
 plt.figure(figsize=(10, 6))
 sns.kdeplot(data=pv3_df, x='Movie', y='TV Show', fill=True)
 plt.title('Density Contour Plot of Rotten Tomatoes Count by Type')
@@ -153,16 +122,14 @@ plt.xlabel('Movie Count')
 plt.ylabel('TV Show Count')
 plt.show()
 
+# 4. Clustering Analysis (KMeans)
 
-#Q.7
 max = dframe1["IMDb"].max()
 print(max)
 result = []
 for number in dframe1["IMDb"]:
     result.append(abs(number)/max)
 dframe1["IMDb_norm"] = result
-# dframe1.to_csv("norm.csv",index=False)
-
 
 X = dframe1.iloc[:, [2,14]].values
 np.set_printoptions(suppress=True)
@@ -183,7 +150,6 @@ plt.show()
 kmeans = KMeans(n_clusters=4, n_init='auto', random_state=42)
 
 y_kmeans = kmeans.fit_predict(X)
-# np.set_printoptions(threshold=np.inf)
 print(y_kmeans)
 print()
 
@@ -198,8 +164,8 @@ plt.title('Clusters')
 plt.legend()
 plt.show()
 
+# 5. Regression Analysis
 
-#Q.8
 x = dframe1['release year']
 y = dframe1['IMDb']
 
@@ -214,7 +180,6 @@ ax.plot(x,y,'o', color ='tab:brown')
 fig.show()
 plt.waitforbuttonpress()
 
-
 x = sm.add_constant(x)
 
 model = sm.OLS(y, x).fit()
@@ -228,8 +193,8 @@ print("R-squared:", r_squared)
 print("Adjusted R-squared:", adjusted_r_squared)
 
 
-#Q.9
-#gini
+# 6. Decision Tree Modeling
+
 features_names = ['IMDb','Rotten Tomatoes']
 
 max_depth = 4
@@ -272,8 +237,6 @@ _ = tree.plot_tree(clf,
 fig.savefig("decision_tree_gini.png")
 plt.show()
 
-
-#entropy
 features_names = ['IMDb','Rotten Tomatoes']
 
 max_depth = 4
@@ -303,7 +266,6 @@ preds_prob = clf.predict_proba(x_test)[:, 1]
 print('ROC AUC', metrics.roc_auc_score(y_test, preds_prob))
 
 text_representation_entropy = tree.export_text(clf)
-#print(text_representation_entropy)
 with open("decision_tree_entropy.log", "w") as fout:
     fout.write(text_representation_entropy)
 
@@ -315,11 +277,11 @@ _ = tree.plot_tree(clf,
                    filled=True)
 fig.savefig("decision_tree_entropy.png")
 plt.show()
-
 print()
 
 
-#Q.10
+# 7. Neural Network Modeling
+
 features_names = ['IMDb','Rotten Tomatoes']
 
 X = dframe1[features_names]
@@ -379,4 +341,5 @@ print("Accuracy = ", accuracy_score(y_test,s_y_pred))
 print("F1_score = ", metrics.f1_score(y_test, s_y_pred))
 print("Recall_score = ", metrics.recall_score(y_test,s_y_pred))
 print("Precision = ", metrics.precision_score(y_test,s_y_pred))
+
 
